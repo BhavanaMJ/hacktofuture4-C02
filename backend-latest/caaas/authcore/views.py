@@ -98,7 +98,7 @@ class VerifyRequestView(APIView):
             ip=context.get("ip"),
             device=context.get("device"),
             endpoint=context.get("endpoint"),
-            risk_score=rule_score
+            risk_score=final_score
         )
 
         return Response({
