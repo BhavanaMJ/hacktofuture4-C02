@@ -109,7 +109,9 @@
   margin-left: 280px;
   padding: 48px;
   flex: 1;
-  max-width: 1400px;
+  max-width: none;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .main-header {
@@ -151,10 +153,17 @@
   background-color: var(--surface-card);
   border-radius: var(--radius-soft);
   padding: 32px;
-  box-shadow: 0 8px 30px rgba(10, 35, 87, 0.04), 0 2px 8px rgba(10, 35, 87, 0.02);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.025);
+  border: 1px solid rgba(0,0,0,0.03);
   display: flex;
   flex-direction: column;
   animation: slamIn 0.5s ease-out backwards;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bento-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
 }
 
 .bento-card h2 {
@@ -172,11 +181,14 @@
 
 /* Dashboard specifics */
 .balance-card .balance-amount {
-  font-size: 48px;
+  font-size: 56px;
   font-weight: 800;
-  letter-spacing: -0.03em;
-  margin: 8px 0;
+  letter-spacing: -0.04em;
+  margin: 12px 0;
   color: var(--primary-navy);
+  background: linear-gradient(135deg, var(--primary-navy) 0%, var(--secondary-blue) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .growth-metric {
@@ -217,7 +229,7 @@
 .dash-btn {
   width: 100%;
   padding: 16px;
-  background-color: var(--primary-navy);
+  background: linear-gradient(135deg, var(--primary-navy) 0%, var(--secondary-blue) 100%);
   color: #fff;
   border: none;
   border-radius: 12px;
@@ -228,13 +240,13 @@
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(10,35,87,0.15);
 }
 
 .dash-btn:hover {
-  background-color: var(--secondary-blue);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(10,35,87,0.25);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 8px 24px rgba(10,35,87,0.3);
 }
 
 .dash-btn-secondary {
@@ -274,11 +286,100 @@
   transform: scale(1.05);
 }
 
+/* Stats / Stat Cards */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background-color: var(--surface-card);
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0,0,0,0.03);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 4px; height: 100%;
+  background-color: var(--primary-navy);
+}
+.stat-card.accent-green::before { background-color: var(--success-green); }
+.stat-card.accent-red::before { background-color: var(--alert-red); }
+.stat-card.accent-orange::before { background-color: #f59e0b; }
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+}
+
+.stat-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 12px 0;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1;
+}
+
 /* Transactions Table */
 .tx-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.dash-card {
+  background-color: var(--surface-card);
+  border-radius: var(--radius-soft);
+  padding: 32px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.025);
+  border: 1px solid rgba(0,0,0,0.03);
+  width: 100%;
+}
+
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.dash-table th {
+  padding: 16px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid var(--input-bg);
+}
+
+.dash-table td {
+  padding: 16px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--input-bg);
+  vertical-align: middle;
+}
+
+.dash-table tr:hover td {
+  background-color: var(--input-bg);
 }
 
 .tx-item {

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
     LayoutDashboard, LogOut, ShieldCheck, 
-    Sun, Moon, User, Bell, Settings
+    Sun, Moon, User, Bell, Settings, Users as UsersIcon
 } from "lucide-react";
 import "../pages/Dashboard.css";
 
@@ -58,6 +58,10 @@ const SecurityDashboard = () => {
                     <Link to="/alerts" className="sidebar-link">
                         <Bell size={20} className="link-icon" />
                         <span>Alerts</span>
+                    </Link>
+                    <Link to="/users" className="sidebar-link">
+                        <UsersIcon size={20} className="link-icon" />
+                        <span>Users</span>
                     </Link>
                     <Link to="/security-settings" className="sidebar-link">
                         <Settings size={20} className="link-icon" />

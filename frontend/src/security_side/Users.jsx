@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
     LayoutDashboard, LogOut, ShieldCheck, 
@@ -6,13 +6,29 @@ import {
 } from "lucide-react";
 import "../pages/Dashboard.css";
 
-const Alerts = () => {
+const Users = () => {
     const navigate = useNavigate();
-    const [alerts, setAlerts] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [theme, setTheme] = useState(document.body.getAttribute('data-theme') || 'light');
 
     const username = localStorage.getItem("username") || "Analyst";
+
+    // Mock data (replace with API later)
+    const [users] = useState([
+        {
+            id: 1,
+            name: "John Doe",
+            email: "john@gmail.com",
+            last_login: "2026-04-16 10:30",
+            joined_at: "2026-01-10",
+        },
+        {
+            id: 2,
+            name: "Alice Smith",
+            email: "alice@gmail.com",
+            last_login: "2026-04-15 09:20",
+            joined_at: "2026-02-05",
+        },
+    ]);
 
     const toggleTheme = () => {
         const newTheme = theme === 'light' ? 'dark' : 'light';
@@ -20,23 +36,18 @@ const Alerts = () => {
         document.body.setAttribute('data-theme', newTheme);
     };
 
-    useEffect(() => {
-        fetch("http://localhost:8000/api/alerts/")
-            .then((res) => res.json())
-            .then((data) => { setAlerts(data); setLoading(false); })
-            .catch((err) => { console.error(err); setLoading(false); });
-    }, []);
-
     const handleLogout = () => {
         localStorage.clear();
         navigate("/login");
     };
 
-    const highRisk = alerts.filter(a => a.risk_score > 70).length;
-    const mediumRisk = alerts.filter(a => a.risk_score > 40 && a.risk_score <= 70).length;
+    const goToDetails = (user) => {
+        navigate("/visual", { state: { user } });
+    };
 
     return (
         <div className="dashboard-layout">
+            {/* Sidebar */}
             <aside className="sidebar">
                 <div className="sidebar-header">
                     <h2><ShieldCheck size={28} /> SecureVault</h2>
@@ -49,11 +60,11 @@ const Alerts = () => {
                         <LayoutDashboard size={20} className="link-icon" />
                         <span>Sessions</span>
                     </Link>
-                    <Link to="/alerts" className="sidebar-link active">
+                    <Link to="/alerts" className="sidebar-link">
                         <Bell size={20} className="link-icon" />
                         <span>Alerts</span>
                     </Link>
-                    <Link to="/users" className="sidebar-link">
+                    <Link to="/users" className="sidebar-link active">
                         <UsersIcon size={20} className="link-icon" />
                         <span>Users</span>
                     </Link>
@@ -70,11 +81,12 @@ const Alerts = () => {
                 </div>
             </aside>
 
+            {/* Main Content */}
             <main className="main-content">
                 <div className="main-header" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                        <h1 className="h1">Welcome, {username}.</h1>
-                        <p className="micro-label" style={{marginTop: '8px'}}>Security Incident Alerts</p>
+                        <h1 className="h1">Bank Users</h1>
+                        <p className="micro-label" style={{marginTop: '8px'}}>Customer Directory</p>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <button onClick={toggleTheme} className="dash-btn-secondary" style={{ padding: '8px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', border: 'none', backgroundColor: 'var(--input-bg)', cursor: 'pointer' }}>
@@ -91,51 +103,42 @@ const Alerts = () => {
                     </div>
                 </div>
 
-                <div className="stats-row">
-                    <div className="stat-card accent-red">
-                        <p className="stat-label">High Risk</p>
-                        <p className="stat-value">{highRisk}</p>
-                    </div>
-                    <div className="stat-card accent-orange">
-                        <p className="stat-label">Medium Risk</p>
-                        <p className="stat-value">{mediumRisk}</p>
-                    </div>
-                    <div className="stat-card">
-                        <p className="stat-label">Total Alerts</p>
-                        <p className="stat-value">{alerts.length}</p>
-                    </div>
+                <div className="dash-card">
+                    <h2><UsersIcon size={20} style={{verticalAlign: 'middle', marginRight: '8px'}} /> Registered Customers</h2>
+                    <table className="dash-table" style={{marginTop: '16px'}}>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Last Login</th>
+                                <th>Joined At</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {users.map((u) => (
+                                <tr key={u.id}>
+                                    <td style={{ fontWeight: 600 }}>{u.name}</td>
+                                    <td>{u.email}</td>
+                                    <td style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>{u.last_login}</td>
+                                    <td style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>{u.joined_at}</td>
+                                    <td>
+                                        <button 
+                                            className="dash-btn" 
+                                            style={{ padding: '6px 12px', fontSize: '12px', background: '#3b82f6', boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)', minWidth: '80px', margin: '0 auto' }}
+                                            onClick={() => goToDetails(u)}
+                                        >
+                                            In-Detail
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
-
-                {loading ? (
-                    <div className="dash-card">
-                        <div className="empty-state">Loading alerts...</div>
-                    </div>
-                ) : alerts.length === 0 ? (
-                    <div className="dash-card">
-                        <div className="empty-state">✅ No security alerts — all clear!</div>
-                    </div>
-                ) : (
-                    alerts.map((alert, index) => (
-                        <div className="alert-card" key={index} style={{ marginBottom: '16px', background: 'var(--surface-card)', padding: '24px', borderRadius: 'var(--radius-soft)', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}>
-                            <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Incident Alert</h3>
-                            <p style={{ margin: '4px 0' }}><b>User:</b> {alert.user}</p>
-                            <p style={{ margin: '4px 0' }}>
-                                <b>Risk Score: </b>
-                                <span className={
-                                    alert.risk_score > 70 ? "risk-high" :
-                                        alert.risk_score > 40 ? "risk-medium" : "risk-low"
-                                } style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold' }}>{alert.risk_score}</span>
-                            </p>
-                            <p style={{ margin: '4px 0' }}><b>Reason:</b> {alert.reason}</p>
-                            <p style={{ color: "var(--text-secondary)", fontSize: "0.82rem", marginTop: '12px', marginBottom: 0 }}>
-                                {new Date(alert.timestamp).toLocaleString()}
-                            </p>
-                        </div>
-                    ))
-                )}
             </main>
         </div>
     );
 };
 
-export default Alerts;
+export default Users;

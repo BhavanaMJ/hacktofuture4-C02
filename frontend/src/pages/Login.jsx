@@ -14,6 +14,7 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [isLocked, setIsLocked] = useState(false);
 
     useEffect(() => {
         const oauthError = searchParams.get("oauth_error");
@@ -63,6 +64,8 @@ const Login = () => {
         } else if (res.error === "Account not verified") {
             setError("Account not verified. Redirecting to verification...");
             setTimeout(() => navigate("/verify", { state: { username: form.username } }), 1500);
+        } else if (res.error === "account_locked" || res.detail === "account_locked" || res.locked === true) {
+            setIsLocked(true);
         } else {
             setError(res.error || "Invalid credentials. Please try again.");
         }
@@ -107,6 +110,51 @@ const Login = () => {
     };
     return (
         <div className="auth-page">
+
+            {/* ── ACCOUNT LOCKED OVERLAY ── */}
+            {isLocked && (
+                <div style={{
+                    position: 'fixed', inset: 0,
+                    backgroundColor: 'rgba(180, 0, 0, 0.88)',
+                    backdropFilter: 'blur(6px)',
+                    display: 'flex', flexDirection: 'column',
+                    alignItems: 'center', justifyContent: 'center',
+                    zIndex: 9999, textAlign: 'center', padding: '24px'
+                }}>
+                    <div style={{ fontSize: '56px', marginBottom: '16px' }}>🔒</div>
+                    <h1 style={{
+                        color: '#fff', fontSize: '28px', fontWeight: '700',
+                        fontFamily: 'Inter, sans-serif', margin: '0 0 16px 0'
+                    }}>
+                        Account Locked
+                    </h1>
+                    <p style={{
+                        color: 'rgba(255,255,255,0.88)', fontSize: '16px',
+                        maxWidth: '440px', lineHeight: '1.7', margin: '0 0 32px 0',
+                        fontFamily: 'Inter, sans-serif'
+                    }}>
+                        Your account has been locked due to suspicious activity.<br />
+                        Please go to <strong>Recovery Mode</strong> to recover your account.
+                    </p>
+                    <button
+                        onClick={() => navigate('/recovery')}
+                        style={{
+                            backgroundColor: '#fff', color: '#b91c1c',
+                            border: 'none', borderRadius: '10px',
+                            padding: '14px 32px', fontSize: '15px',
+                            fontWeight: '700', cursor: 'pointer',
+                            fontFamily: 'Inter, sans-serif',
+                            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                            transition: 'transform 0.15s'
+                        }}
+                        onMouseOver={e => e.currentTarget.style.transform = 'scale(1.04)'}
+                        onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                    >
+                        Go to Recovery Mode
+                    </button>
+                </div>
+            )}
+
             <div className="auth-card">
                 <div className="auth-icon"><Lock size={28} /></div>
                 <h2>Secure Access</h2>
