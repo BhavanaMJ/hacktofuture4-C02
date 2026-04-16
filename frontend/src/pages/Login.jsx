@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { apiRequest } from "../utils/api";
+import { Shield, Lock, ShieldCheck } from "lucide-react";
 import "./Auth.css";
 
 const OAUTH_CLIENT_ID = "xy0eCTbvimtPzOmlxBN3Wf9rGJezn4RZfDMkO63Z";
@@ -20,9 +21,6 @@ const Login = () => {
             setError(oauthError);
         }
     }, [searchParams]);
-
-
-
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -110,9 +108,9 @@ const Login = () => {
     return (
         <div className="auth-page">
             <div className="auth-card">
-                <div className="auth-icon">🔐</div>
-                <h2>Welcome Back</h2>
-                <p className="auth-subtitle">Sign in to your account</p>
+                <div className="auth-icon"><Lock size={28} /></div>
+                <h2>Secure Access</h2>
+                <p className="auth-subtitle">Sign in to your SecureVault</p>
 
                 {error && <div className="auth-error">{error}</div>}
                 {success && <div className="auth-success">{success}</div>}
@@ -152,15 +150,15 @@ const Login = () => {
                 </form>
 
                 <div className="auth-divider">
-                    <span>or</span>
+                    <span>or connect securely</span>
                 </div>
 
                 <button className="oauth-btn" onClick={handleOAuthLogin}>
-                    🛡️ Login with SecureShield
+                    <Shield size={20} className="text-secondary-blue" /> Login with SecureShield
                 </button>
 
                 <div className="auth-footer">
-                    Don't have an account? <Link to="/signup">Sign up</Link>
+                    Not registered? <Link to="/signup">Sign up</Link>
                 </div>
             </div>
         </div>

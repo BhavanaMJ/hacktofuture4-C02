@@ -1,13 +1,24 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import "../pages/Auth.css";
+import { 
+    LayoutDashboard, LogOut, ShieldCheck, 
+    Sun, Moon, User, Bell, Settings
+} from "lucide-react";
+import "../pages/Dashboard.css";
 
 const SecurityDashboard = () => {
     const navigate = useNavigate();
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [theme, setTheme] = useState(document.body.getAttribute('data-theme') || 'light');
 
     const username = localStorage.getItem("username") || "Analyst";
+
+    const toggleTheme = () => {
+        const newTheme = theme === 'light' ? 'dark' : 'light';
+        setTheme(newTheme);
+        document.body.setAttribute('data-theme', newTheme);
+    };
 
     useEffect(() => {
         fetch("http://localhost:8000/api/sessions/")
@@ -32,38 +43,56 @@ const SecurityDashboard = () => {
 
     return (
         <div className="dashboard-layout">
-            {/* Sidebar */}
             <aside className="sidebar">
                 <div className="sidebar-header">
-                    <h2>🛡️ SecureBank</h2>
-                    <div className="sidebar-role">Fraud Analyst</div>
+                    <h2><ShieldCheck size={28} /> SecureVault</h2>
+                    <div className="sidebar-role" style={{ color: 'var(--text-secondary)' }}>
+                        {localStorage.getItem("role") === "fraud_analyst" ? "Fraud Analyst" : "Customer"} Access
+                    </div>
                 </div>
                 <nav className="sidebar-nav">
                     <Link to="/security" className="sidebar-link active">
-                        <span className="link-icon">📊</span>
+                        <LayoutDashboard size={20} className="link-icon" />
                         <span>Sessions</span>
                     </Link>
                     <Link to="/alerts" className="sidebar-link">
-                        <span className="link-icon">🚨</span>
+                        <Bell size={20} className="link-icon" />
                         <span>Alerts</span>
+                    </Link>
+                    <Link to="/security-settings" className="sidebar-link">
+                        <Settings size={20} className="link-icon" />
+                        <span>Settings</span>
                     </Link>
                 </nav>
                 <div className="sidebar-footer">
                     <button className="sidebar-link" onClick={handleLogout}>
-                        <span className="link-icon">🚪</span>
-                        <span>Logout</span>
+                        <LogOut size={20} className="link-icon" />
+                        <span>Terminate Session</span>
                     </button>
                 </div>
             </aside>
 
-            {/* Main */}
             <main className="main-content">
-                <div className="main-header">
-                    <h1>Security Dashboard</h1>
-                    <p>Monitor user sessions and detect anomalies</p>
+                <div className="main-header" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                        <h1 className="h1">Welcome, {username}.</h1>
+                        <p className="micro-label" style={{marginTop: '8px'}}>System Monitoring Dashboard</p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <button onClick={toggleTheme} className="dash-btn-secondary" style={{ padding: '8px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', border: 'none', backgroundColor: 'var(--input-bg)', cursor: 'pointer' }}>
+                            {theme === 'light' ? <Moon size={20} color="var(--primary-navy)" /> : <Sun size={20} color="var(--primary-navy)" />}
+                        </button>
+                        <Link to="/security-settings" style={{ textDecoration: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '6px 16px 6px 6px', borderRadius: '30px', backgroundColor: 'var(--input-bg)', transition: 'all 0.2s' }}>
+                                <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'var(--primary-navy)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <User size={18} />
+                                </div>
+                                <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)' }}>{username}</span>
+                            </div>
+                        </Link>
+                    </div>
                 </div>
 
-                {/* Stats */}
                 <div className="stats-row">
                     <div className="stat-card">
                         <p className="stat-label">Total Sessions</p>
@@ -79,15 +108,14 @@ const SecurityDashboard = () => {
                     </div>
                 </div>
 
-                {/* Sessions Table */}
                 <div className="dash-card">
-                    <h2>📡 Active Sessions</h2>
+                    <h2><LayoutDashboard size={20} style={{verticalAlign: 'middle', marginRight: '8px'}} /> Active Sessions</h2>
                     {loading ? (
                         <div className="empty-state">Loading sessions...</div>
                     ) : sessions.length === 0 ? (
                         <div className="empty-state">No sessions found</div>
                     ) : (
-                        <table className="dash-table">
+                        <table className="dash-table" style={{marginTop: '16px'}}>
                             <thead>
                                 <tr>
                                     <th>User</th>
@@ -102,7 +130,7 @@ const SecurityDashboard = () => {
                                 {sessions.map((s, index) => (
                                     <tr key={index}>
                                         <td style={{ fontWeight: 600 }}>{s.user}</td>
-                                        <td style={{ fontSize: "0.78rem", fontFamily: "monospace", color: "#64748b" }}>
+                                        <td style={{ fontSize: "0.78rem", fontFamily: "monospace", color: "var(--text-secondary)" }}>
                                             {s.session_id?.substring(0, 12)}...
                                         </td>
                                         <td>{s.ip_address}</td>
@@ -112,7 +140,7 @@ const SecurityDashboard = () => {
                                                 {s.status}
                                             </span>
                                         </td>
-                                        <td style={{ color: "#64748b", fontSize: "0.82rem" }}>
+                                        <td style={{ color: "var(--text-secondary)", fontSize: "0.82rem" }}>
                                             {new Date(s.created_at).toLocaleString()}
                                         </td>
                                     </tr>

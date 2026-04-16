@@ -4,8 +4,11 @@ import Signup from './pages/Signup'
 import Verify from './pages/Verify'
 import Callback from './pages/Callback'
 import UserDashboard from './user_side/UserDashboard'
+import UserTransfers from './user_side/UserTransfers'
+import UserSettings from './user_side/UserSettings'
 import SecurityDashboard from './security_side/SecurityDashboard'
 import Alerts from './security_side/Alerts'
+import SecuritySettings from './security_side/Settings'
 
 function App() {
   return (
@@ -16,8 +19,11 @@ function App() {
       <Route path="/verify" element={<Verify />} />
       <Route path="/callback" element={<Callback />} />
       <Route path="/dashboard" element={<UserDashboard />} />
+      <Route path="/user-transfers" element={<UserTransfers />} />
+      <Route path="/user-settings" element={<UserSettings />} />
       <Route path="/security" element={<SecurityDashboard />} />
       <Route path="/alerts" element={<Alerts />} />
+      <Route path="/security-settings" element={<SecuritySettings />} />
     </Routes>
   )
 }

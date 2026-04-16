@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { apiRequest } from "../utils/api";
+import { CheckCircle, ShieldCheck } from "lucide-react";
 import "./Auth.css";
 
 const Verify = () => {
@@ -39,10 +40,13 @@ const Verify = () => {
     return (
         <div className="auth-page">
             <div className="auth-card">
-                <div className="auth-icon">📧</div>
-                <h2>Verify Your Account</h2>
+                <div className="secure-badge">
+                    <ShieldCheck size={14} /> Identity Verify
+                </div>
+                <div className="auth-icon"><CheckCircle size={28} /></div>
+                <h2>Awaiting Verification</h2>
                 <p className="auth-subtitle">
-                    Enter the verification code sent to your email
+                    Enter the offline security code sent to your endpoint
                 </p>
 
                 {error && <div className="auth-error">{error}</div>}
@@ -68,6 +72,7 @@ const Verify = () => {
                         <input
                             id="verify-code"
                             type="text"
+                            className="mono"
                             placeholder="Enter 6-digit code"
                             value={code}
                             onChange={(e) => {
@@ -83,7 +88,7 @@ const Verify = () => {
                         className={`auth-btn${loading ? " loading" : ""}`}
                         disabled={loading}
                     >
-                        Verify Account
+                        Verify Identity
                     </button>
                 </form>
 

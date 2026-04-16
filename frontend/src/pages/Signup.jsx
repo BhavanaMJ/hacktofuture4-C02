@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../utils/api";
+import { UserPlus, ShieldCheck, User, ShieldAlert } from "lucide-react";
 import "./Auth.css";
 
 const Signup = () => {
@@ -56,30 +57,34 @@ const Signup = () => {
     return (
         <div className="auth-page">
             <div className="auth-card">
-                <div className="auth-icon">✨</div>
-                <h2>Create Account</h2>
-                <p className="auth-subtitle">Join us — it only takes a minute</p>
+                <div className="auth-icon"><UserPlus size={28} /></div>
+                <h2>Sign up</h2>
+                <p className="auth-subtitle">Create your SecureVault credentials</p>
 
                 {error && <div className="auth-error">{error}</div>}
                 {success && <div className="auth-success">{success}</div>}
 
                 <form className="auth-form" onSubmit={handleSubmit}>
                     <div className="input-group">
-                        <label htmlFor="signup-role">I am a</label>
+                        <label htmlFor="signup-role">Access Clearance</label>
                         <div className="role-toggle">
                             <button
                                 type="button"
                                 className={`role-option${form.role === "customer" ? " active" : ""}`}
                                 onClick={() => setForm({ ...form, role: "customer" })}
                             >
-                                🏦 Customer
+                                <span style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'}}>
+                                    <User size={16} /> Customer
+                                </span>
                             </button>
                             <button
                                 type="button"
                                 className={`role-option${form.role === "fraud_analyst" ? " active" : ""}`}
                                 onClick={() => setForm({ ...form, role: "fraud_analyst" })}
                             >
-                                🛡️ Fraud Analyst
+                                <span style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'}}>
+                                    <ShieldAlert size={16} /> Analyst
+                                </span>
                             </button>
                         </div>
                     </div>
@@ -141,7 +146,7 @@ const Signup = () => {
                 </form>
 
                 <div className="auth-footer">
-                    Already have an account? <Link to="/login">Sign in</Link>
+                    Already initialized? <Link to="/login">Login</Link>
                 </div>
             </div>
         </div>

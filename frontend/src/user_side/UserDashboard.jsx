@@ -1,152 +1,135 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../utils/api";
-import "../pages/Auth.css";
+import { 
+    LayoutDashboard, Send, Fingerprint, LogOut, ArrowRight, 
+    ShieldCheck, Activity, KeyRound, CircleDollarSign, Settings,
+    Sun, Moon, User
+} from "lucide-react";
+import "../pages/Dashboard.css";
 
 const UserDashboard = () => {
     const navigate = useNavigate();
-    const [amount, setAmount] = useState("");
-    const [receiver, setReceiver] = useState("");
+    const [theme, setTheme] = useState(document.body.getAttribute('data-theme') || 'light');
+
     const [balance, setBalance] = useState(null);
     const [transactions, setTransactions] = useState([]);
-    const [message, setMessage] = useState("");
-    const [error, setError] = useState("");
-
+    
     const username = localStorage.getItem("username") || "User";
 
-    // Auto-fetch balance and transactions on load
+    const toggleTheme = () => {
+        const newTheme = theme === 'light' ? 'dark' : 'light';
+        setTheme(newTheme);
+        document.body.setAttribute('data-theme', newTheme);
+    };
+
     useEffect(() => {
         const fetchData = async () => {
             const balRes = await apiRequest("/balance/", "GET");
             if (balRes.data) setBalance(balRes.data.balance);
 
             const txRes = await apiRequest("/transactions/", "GET");
-            if (txRes.data) setTransactions(txRes.data);
+            if (txRes.data && Array.isArray(txRes.data)) setTransactions(txRes.data);
         };
         fetchData();
     }, []);
-
-    const handleTransfer = async () => {
-        setError(""); setMessage("");
-        if (!amount || !receiver) { setError("Enter amount and receiver"); return; }
-
-        const res = await apiRequest("/transfer/", "POST", { amount, receiver });
-        if (res.error) {
-            setError(res.error);
-        } else {
-            setMessage(res.message || "Transfer successful");
-            if (res.data) setBalance(res.data.new_balance);
-            // Refresh transactions
-            const txRes = await apiRequest("/transactions/", "GET");
-            if (txRes.data) setTransactions(txRes.data);
-            setAmount("");
-            setReceiver("");
-        }
-    };
-
-    const handleAddBeneficiary = async () => {
-        setError(""); setMessage("");
-        if (!receiver) { setError("Enter receiver name"); return; }
-        const res = await apiRequest("/add-beneficiary/", "POST", { receiver });
-        if (res.error) { setError(res.error); }
-        else { setMessage(res.message || "Beneficiary added"); }
-    };
 
     const handleLogout = () => {
         localStorage.clear();
         navigate("/login");
     };
 
+    const safeTransactions = Array.isArray(transactions) ? transactions : [];
+
     return (
         <div className="dashboard-layout">
-            {/* Sidebar */}
             <aside className="sidebar">
                 <div className="sidebar-header">
-                    <h2>🏦 SecureBank</h2>
-                    <div className="sidebar-role">Customer</div>
+                    <h2><ShieldCheck size={28} /> SecureVault</h2>
+                    <div className="sidebar-role" style={{ color: 'var(--text-secondary)' }}>
+                        {localStorage.getItem("role") === "fraud_analyst" ? "Fraud Analyst" : "Customer"} Access
+                    </div>
                 </div>
                 <nav className="sidebar-nav">
                     <Link to="/dashboard" className="sidebar-link active">
-                        <span className="link-icon">📊</span>
+                        <LayoutDashboard size={20} className="link-icon" />
                         <span>Dashboard</span>
+                    </Link>
+                    <Link to="/user-transfers" className="sidebar-link">
+                        <Send size={20} className="link-icon" />
+                        <span>Transfers</span>
+                    </Link>
+                    <Link to="/user-settings" className="sidebar-link">
+                        <Settings size={20} className="link-icon" />
+                        <span>Settings</span>
                     </Link>
                 </nav>
                 <div className="sidebar-footer">
                     <button className="sidebar-link" onClick={handleLogout}>
-                        <span className="link-icon">🚪</span>
-                        <span>Logout</span>
+                        <LogOut size={20} className="link-icon" />
+                        <span>Terminate Session</span>
                     </button>
                 </div>
             </aside>
 
-            {/* Main */}
             <main className="main-content">
-                <div className="main-header">
-                    <h1>Welcome, {username} 👋</h1>
-                    <p>Manage your finances securely</p>
-                </div>
-
-                {error && <div className="auth-error" style={{ marginBottom: 16 }}>{error}</div>}
-                {message && <div className="auth-success" style={{ marginBottom: 16 }}>{message}</div>}
-
-                {/* Stats */}
-                <div className="stats-row">
-                    <div className="stat-card">
-                        <p className="stat-label">Balance</p>
-                        <p className="stat-value">{balance !== null ? `₹${balance}` : "—"}</p>
+                <div className="main-header" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                        <h1 className="h1">Welcome, {username}.</h1>
                     </div>
-                    <div className="stat-card accent-green">
-                        <p className="stat-label">Transactions</p>
-                        <p className="stat-value">{transactions.length}</p>
-                    </div>
-                </div>
-
-                {/* Transfer */}
-                <div className="dash-card">
-                    <h2>💸 Transfer Money</h2>
-                    <div className="form-row">
-                        <input className="dash-input" type="number" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} />
-                        <input className="dash-input" type="text" placeholder="Receiver username" value={receiver} onChange={(e) => setReceiver(e.target.value)} />
-                        <button className="dash-btn dash-btn-primary" onClick={handleTransfer}>Transfer</button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <button onClick={toggleTheme} className="dash-btn-secondary" style={{ padding: '8px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', border: 'none', backgroundColor: 'var(--input-bg)', cursor: 'pointer' }}>
+                            {theme === 'light' ? <Moon size={20} color="var(--primary-navy)" /> : <Sun size={20} color="var(--primary-navy)" />}
+                        </button>
+                        <Link to="/user-settings" style={{ textDecoration: 'none' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '6px 16px 6px 6px', borderRadius: '30px', backgroundColor: 'var(--input-bg)', transition: 'all 0.2s' }}>
+                                <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'var(--primary-navy)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <User size={18} />
+                                </div>
+                                <span style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)' }}>{username}</span>
+                            </div>
+                        </Link>
                     </div>
                 </div>
 
-                {/* Add Beneficiary */}
-                <div className="dash-card">
-                    <h2>👤 Add Beneficiary</h2>
-                    <div className="form-row">
-                        <input className="dash-input" type="text" placeholder="Beneficiary username" value={receiver} onChange={(e) => setReceiver(e.target.value)} />
-                        <button className="dash-btn dash-btn-secondary" onClick={handleAddBeneficiary}>Add</button>
-                    </div>
-                </div>
+                <div className="bento-grid">
+                    <div className="bento-card col-span-12 balance-card">
+                        <h2><Activity size={20} /> Secure Vault Balance</h2>
+                        <div className="balance-amount">{balance !== null ? `₹${balance}` : "—"}</div>
+                        
+                        <div style={{ display: 'flex', gap: '16px', marginTop: '24px', marginBottom: '24px' }}>
+                            <Link to="/user-transfers" className="dash-btn" style={{ width: 'fit-content', padding: '12px 24px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                                <Send size={18} /> Transfer Money
+                            </Link>
+                            <Link to="/user-settings" className="dash-btn dash-btn-secondary" style={{ width: 'fit-content', padding: '12px 24px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                                <Settings size={18} /> Account Settings
+                            </Link>
+                        </div>
 
-                {/* Transactions Table */}
-                <div className="dash-card">
-                    <h2>📋 Recent Transactions</h2>
-                    {transactions.length === 0 ? (
-                        <div className="empty-state">No transactions yet</div>
-                    ) : (
-                        <table className="dash-table">
-                            <thead>
-                                <tr>
-                                    <th>Receiver</th>
-                                    <th>Amount</th>
-                                    <th>Type</th>
-                                    <th>Time</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {transactions.map((t) => (
-                                    <tr key={t.id}>
-                                        <td>{t.receiver}</td>
-                                        <td style={{ fontWeight: 600 }}>₹{t.amount}</td>
-                                        <td><span className="mode-badge normal">{t.transaction_type}</span></td>
-                                        <td>{new Date(t.timestamp).toLocaleString()}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    )}
+                        <h3 className="h3" style={{marginTop: '16px', marginBottom: '16px', fontSize: '15px'}}>Recent Activity</h3>
+                        <div className="tx-list">
+                            {safeTransactions.length === 0 ? (
+                                <p style={{color: 'var(--text-secondary)', fontSize: '14px'}}>No transactions yet.</p>
+                            ) : (
+                                safeTransactions.slice(0, 10).map((t) => (
+                                    <div className="tx-item" key={t.id}>
+                                        <div className="tx-info">
+                                            <div className="tx-icon">
+                                                <CircleDollarSign size={20} />
+                                            </div>
+                                            <div className="tx-details">
+                                                <p>Transfer to {t.receiver}</p>
+                                                <span>{new Date(t.timestamp).toLocaleString()} • {t.transaction_type}</span>
+                                            </div>
+                                        </div>
+                                        <div className="tx-amount negative">
+                                            -₹{t.amount}
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
                 </div>
             </main>
         </div>
