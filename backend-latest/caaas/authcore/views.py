@@ -71,8 +71,24 @@ class VerifyRequestView(APIView):
 
         profile = get_or_create_profile(user_id)
 
-        risk_score, reasons = calculate_risk(profile, context)
-        decision = decide(risk_score)
+        from authcore.ml_service import get_ml_risk_score, build_ml_features
+
+        # Rule-based risk
+        rule_score, reasons = calculate_risk(profile, context)
+
+        # ML risk
+        try:
+            features = build_ml_features(context, profile)
+            ml_result = get_ml_risk_score(features)
+            ml_score = ml_result["risk"]
+        except Exception as e:
+            print("ML ERROR:", e)
+            ml_score = 0  # fallback
+
+        # 🔥 Combine both scores
+        final_score = int((0.6 * rule_score) + (0.4 * ml_score))
+
+        decision = decide(final_score)
 
         if decision in ["ALLOW","MONITOR"]:
             update_user_profile(profile, context)
@@ -82,12 +98,14 @@ class VerifyRequestView(APIView):
             ip=context.get("ip"),
             device=context.get("device"),
             endpoint=context.get("endpoint"),
-            risk_score=risk_score
+            risk_score=rule_score
         )
 
         return Response({
             "status": decision,
-            "risk_score": risk_score,
+            "risk_score": final_score,
+            "ml_score": ml_score,
+            "rule_score":rule_score,
             "reasons": reasons
         })
 
@@ -131,4 +149,30 @@ class LoginView(APIView):
 
         return Response({
             "access_token": token
+        })
+    
+class TrainModelView(APIView):
+
+    def post(self, request):
+        from .anomaly_detection import append_and_retrain
+        from authcore.ml_service import build_ml_features,get_model
+
+        context = request.data.get("context")
+        label = request.data.get("label")  # 0 = normal, 1 = anomaly
+        user_id = request.data.get("user_id")
+
+        if context is None or label not in [0, 1]:
+            return Response({"error": "Invalid input"}, status=400)
+
+        profile = get_or_create_profile(user_id)
+
+        # Build features from context
+        features = build_ml_features(context, profile)
+
+        # Retrain model
+        model, feature_cols = get_model()
+        append_and_retrain(features, feature_cols, label)
+
+        return Response({
+            "status": "Model updated successfully"
         })
