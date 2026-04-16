@@ -44,3 +44,7 @@ Thumbs.db
 
 # Custom error logs from your workspace
 error*.txt
+
+
+APIs/migrations/*
+myenv
