@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import VerifyRequestView, RegisterView, LoginView, TrainModelView
-from .recovery_views import RecoveryVerifyView
+from .views import VerifyRequestView, RegisterView, LoginView,TrainModelView
+from .views import UserSummaryView, UserAnalyticsView, UserLogsView
 
 urlpatterns = [
     path("auth/register", RegisterView.as_view()),
@@ -10,4 +10,9 @@ urlpatterns = [
 
     # Step-Up Verification (recovery code)
     path("auth/recovery/verify", RecoveryVerifyView.as_view()),
+# dashboard apis
+    path("user/summary/", UserSummaryView.as_view()),
+    path("user/analytics/", UserAnalyticsView.as_view()),
+    path("user/logs/", UserLogsView.as_view()),
+
 ]

@@ -180,3 +180,127 @@ class TrainModelView(APIView):
         return Response({
             "status": "Model updated successfully"
         })
+    
+
+
+
+    # ====dashboard apis
+
+from django.db.models import Count, Avg
+from django.utils.timezone import now
+from datetime import timedelta
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
+
+from .models import User, RequestLog
+
+
+class UserSummaryView(APIView):
+
+    def get(self, request):
+        user_id = request.query_params.get("user_id")
+
+        user = User.objects.filter(user_id=user_id).first()
+        if not user:
+            return Response({"error": "User not found"}, status=404)
+
+        # Last 24 hours
+        last_day = now() - timedelta(days=1)
+
+        logs = RequestLog.objects.filter(user_id=str(user_id))
+
+        requests_per_day = logs.filter(timestamp__gte=last_day).count()
+
+        avg_risk = logs.aggregate(avg=Avg("risk_score"))["avg"] or 0
+
+        # Fake metric (you don’t have packets yet)
+        avg_packets = 45  
+
+        # Frequency (approx)
+        total_logs = logs.count()
+        if total_logs > 1:
+            first = logs.order_by("timestamp").first().timestamp
+            last = logs.order_by("-timestamp").first().timestamp
+            diff = (last - first).total_seconds() / max(total_logs, 1)
+            freq = f"Every {int(diff//60)} mins"
+        else:
+            freq = "N/A"
+
+        return Response({
+            "name": user.email.split("@")[0],
+            "email": user.email,
+            "role": "Analyst",
+
+            "requests_per_day": requests_per_day,
+            "avg_packets_per_request": avg_packets,
+            "frequency_interval": freq,
+            "avg_risk_score": round(avg_risk, 2)
+        })
+    
+
+class UserAnalyticsView(APIView):
+
+    def get(self, request):
+        user_id = request.query_params.get("user_id")
+
+        logs = RequestLog.objects.filter(user_id=str(user_id))
+
+        # Top IPs
+        top_ips = (
+            logs.values("ip")
+            .annotate(count=Count("ip"))
+            .order_by("-count")[:5]
+        )
+
+        # Top Endpoints
+        top_endpoints = (
+            logs.values("endpoint")
+            .annotate(count=Count("endpoint"))
+            .order_by("-count")[:5]
+        )
+
+        # Top Devices
+        top_devices = (
+            logs.values("device")
+            .annotate(count=Count("device"))
+            .order_by("-count")[:5]
+        )
+
+        return Response({
+            "top_ips": list(top_ips),
+            "top_endpoints": list(top_endpoints),
+            "top_devices": list(top_devices),
+        })
+    
+
+class LogsPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = "limit"
+
+
+class UserLogsView(APIView):
+
+    def get(self, request):
+        user_id = request.query_params.get("user_id")
+
+        logs = RequestLog.objects.filter(user_id=str(user_id)).order_by("-timestamp")
+
+        paginator = LogsPagination()
+        paginated_logs = paginator.paginate_queryset(logs, request)
+
+        data = [
+            {
+                "user_id": log.user_id,
+                "ip": log.ip,
+                "device": log.device,
+                "endpoint": log.endpoint,
+                "risk_score": log.risk_score,
+                "timestamp": log.timestamp.strftime("%Y-%m-%d %H:%M"),
+            }
+            for log in paginated_logs
+        ]
+
+        return paginator.get_paginated_response(data)
+    
