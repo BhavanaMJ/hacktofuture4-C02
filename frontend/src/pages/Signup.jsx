@@ -1,8 +1,52 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiRequest } from "../utils/api";
-import { UserPlus, ShieldCheck, User, ShieldAlert } from "lucide-react";
+import { UserPlus, ShieldCheck, User, ShieldAlert, Copy, CheckCheck } from "lucide-react";
 import "./Auth.css";
+
+const RecoveryCodeModal = ({ code, onDismiss }) => {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(code);
+        setCopied(true);
+    };
+
+    return (
+        <div className="recovery-modal-overlay">
+            <div className="recovery-modal">
+                <div className="recovery-modal-icon">🔑</div>
+                <h2>Save Your Recovery Code</h2>
+                <p className="recovery-modal-subtitle">
+                    This code is displayed <strong>only once</strong>. Store it safely —
+                    you'll need it for step-up verification.
+                </p>
+                <div className="recovery-code-display">
+                    <code>{code}</code>
+                    <button
+                        className="copy-btn"
+                        onClick={handleCopy}
+                        title="Copy to clipboard"
+                    >
+                        {copied ? <CheckCheck size={18} /> : <Copy size={18} />}
+                        {copied ? "Copied!" : "Copy"}
+                    </button>
+                </div>
+                <p className="recovery-modal-warning">
+                    ⚠️ You will not be able to view this code again. Please copy it now.
+                </p>
+                <button
+                    className="auth-btn"
+                    onClick={onDismiss}
+                    disabled={!copied}
+                    style={{ marginTop: "1rem", width: "100%", opacity: copied ? 1 : 0.5 }}
+                >
+                    {copied ? "I've saved it — Continue" : "Copy the code to continue"}
+                </button>
+            </div>
+        </div>
+    );
+};
 
 const Signup = () => {
     const navigate = useNavigate();
@@ -16,6 +60,8 @@ const Signup = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [recoveryCode, setRecoveryCode] = useState(null);
+    const [pendingUsername, setPendingUsername] = useState("");
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -38,10 +84,15 @@ const Signup = () => {
         setLoading(false);
 
         if (res.message && !res._error) {
-            setSuccess("Account created! Check your email for the verification code.");
-            setTimeout(() => {
-                navigate("/verify", { state: { username: form.username } });
-            }, 2000);
+            // Show the one-time recovery code modal before navigating
+            if (res.data && res.data.recovery_code) {
+                setRecoveryCode(res.data.recovery_code);
+                setPendingUsername(form.username);
+            } else {
+                // No recovery code in response (shouldn't happen) — proceed directly
+                setSuccess("Account created! Check your email for the verification code.");
+                setTimeout(() => navigate("/verify", { state: { username: form.username } }), 2000);
+            }
         } else {
             if (res.error && typeof res.error === "object") {
                 const messages = Object.entries(res.error)
@@ -54,8 +105,17 @@ const Signup = () => {
         }
     };
 
+    const handleModalDismiss = () => {
+        setRecoveryCode(null);
+        navigate("/verify", { state: { username: pendingUsername } });
+    };
+
     return (
         <div className="auth-page">
+            {recoveryCode && (
+                <RecoveryCodeModal code={recoveryCode} onDismiss={handleModalDismiss} />
+            )}
+
             <div className="auth-card">
                 <div className="auth-icon"><UserPlus size={28} /></div>
                 <h2>Sign up</h2>
@@ -73,7 +133,7 @@ const Signup = () => {
                                 className={`role-option${form.role === "customer" ? " active" : ""}`}
                                 onClick={() => setForm({ ...form, role: "customer" })}
                             >
-                                <span style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'}}>
+                                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                                     <User size={16} /> Customer
                                 </span>
                             </button>
@@ -82,7 +142,7 @@ const Signup = () => {
                                 className={`role-option${form.role === "fraud_analyst" ? " active" : ""}`}
                                 onClick={() => setForm({ ...form, role: "fraud_analyst" })}
                             >
-                                <span style={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'}}>
+                                <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                                     <ShieldAlert size={16} /> Analyst
                                 </span>
                             </button>

@@ -17,4 +17,8 @@ class RegisterSerializer(serializers.ModelSerializer):
             is_verified=False,
         )
         user.generate_code()
+        # Generate and store the one-time recovery code
+        recovery_code = user.generate_recovery_code()
+        # Attach to instance temporarily for the view to read
+        user._recovery_code = recovery_code
         return user

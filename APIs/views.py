@@ -36,14 +36,24 @@ class RegisterView(APIView):
 
         user = serializer.save()
 
-        # Send verification email (console backend in development)
+        # Send verification email
         send_otp_email(
             otp=user.verification_code,
             email=user.email,
         )
 
+        # Return recovery_code ONCE — frontend must display and discard it
+        recovery_code = getattr(user, '_recovery_code', None)
+
         return Response(
-            {"message": "User registered. Check email for verification code.", "data": {"user_name": user.username}, "error": None},
+            {
+                "message": "User registered. Check email for verification code.",
+                "data": {
+                    "user_name": user.username,
+                    "recovery_code": recovery_code,   # shown once only
+                },
+                "error": None
+            },
             status=status.HTTP_201_CREATED
         )
 

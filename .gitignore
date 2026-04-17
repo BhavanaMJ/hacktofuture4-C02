@@ -48,3 +48,10 @@ error*.txt
 
 APIs/migrations/*
 myenv
+../myenv
+
+
+backend-latest/caaas/authcore/migrations    
+
+
+backend-latest/myvenv/*

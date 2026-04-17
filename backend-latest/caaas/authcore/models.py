@@ -46,10 +46,28 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # Step-Up Verification
+    recovery_code = models.CharField(max_length=10, unique=True, null=True, blank=True)
+    is_recovered = models.BooleanField(default=False)
+
     objects = UserManager()  # 👈 THIS IS CRITICAL
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
+
+    system_lockdown = models.BooleanField(default=False)
+
+    def generate_recovery_code(self):
+        """Generate a unique 8-char alphanumeric recovery code and save it."""
+        import random
+        import string
+        chars = string.ascii_uppercase + string.digits
+        while True:
+            code = ''.join(random.choices(chars, k=8))
+            if not User.objects.filter(recovery_code=code).exists():
+                self.recovery_code = code
+                self.save(update_fields=["recovery_code"])
+                return code
 
     def __str__(self):
         return self.email

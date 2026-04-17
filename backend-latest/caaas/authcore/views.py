@@ -123,9 +123,13 @@ class RegisterView(APIView):
             serializer.validated_data["password"]
         )
 
+        # Generate one-time recovery code (Step-Up Verification)
+        recovery_code = user.generate_recovery_code()
+
         return Response({
             "message": "User registered",
-            "user_id": user.user_id
+            "user_id": str(user.user_id),
+            "recovery_code": recovery_code,   # Displayed ONCE — frontend must store this
         })
 
 
